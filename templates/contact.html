@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}聯絡我們 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>聯絡我們</h1>
+
+{% if message %}
+<div class="alert">{{ message }}</div>
+{% endif %}
+
+<form method="POST" action="/contact">
+  <div class="form_group">
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name" required>
+  </div>
+
+  <div class="form_group">
+    <label for="email">電子郵件：</label>
+    <input type="email" id="email" name="email" required>
+  </div>
+
+  <div class="form_group">
+    <label for="message">訊息：</label>
+    <textarea id="message" name="message" rows="5" required></textarea>
+  </div>
+
+  <button type="submit">送出</button>
+</form>
+{% endblock %}
