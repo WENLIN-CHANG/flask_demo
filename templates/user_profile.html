@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}{{ username }}的資料 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>用戶資料</h1>
+<div class="user_info">
+  <p><strong>用戶名：</strong>{{ username }}</p>
+  <p><strong>用戶ID：</strong>{{ user_id }}</p>
+  <p><strong>註冊時間：</strong>2024年1月1日</p>
+</div>
+<p><a href="/">返回首頁</a></p>
+{% endblock %}

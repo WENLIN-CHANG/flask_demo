@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}首頁 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>歡迎來到Flask Demo</h1>
+<p>這是使用模板引擎的首頁</p>
+<ul>
+  <li><a href="/user/張三/123">查看用戶資料</a></li>
+  <li><a href="/search?q=測試">搜索測試</a></li>
+  <li><a href="/about">關於頁面</a></li>
+</ul>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}搜索結果 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>搜索結果</h1>
+<p>搜索關鍵字：<strong>{{ query }}</strong></p>
+{% if query != '沒有搜索詞' %}
+<p>找到了關於 "{{ query }}" 的內容！</p>
+{% else %}
+<p>請提供搜索關鍵字</p>
+{% endif %}
+{% endblock %}
