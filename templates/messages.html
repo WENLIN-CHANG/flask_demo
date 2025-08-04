@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}所有訊息 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>收到的訊息</h1>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="message_card">
+  <h3>{{ msg.name }}</h3>
+  <p><strong>信箱：</strong>{{ msg.email }}</p>
+  <p><strong>訊息：</strong>{{ msg.message }}</p>
+  <p><strong>時間：</strong>{{ msg.created_at.strftime('%Y-%m-%d %H:%M')
+    }}</p>
+</div>
+{% endfor %}
+{% else %}
+<p>目前沒有任何訊息</p>
+{% endif %}
+{% endblock %}

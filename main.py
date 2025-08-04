@@ -62,7 +62,7 @@ def contact():
 
         # 簡單的驗證
         if name and email and message:
-        # 這裡可以處理數據（儲存到資料庫、發送郵件等）
+            # 保存到資料庫
             contact_msg = ContactMessage(name=name, email=email, message=message)
             db.session.add(contact_msg)
             db.session.commit()
@@ -73,6 +73,12 @@ def contact():
             return render_template("contact.html", message=error_message)
     # GET請求時顯示空白表單
     return render_template("contact.html")
+
+@app.route("/messages")
+def messages():
+    # 從資料庫取出所有訊息
+    all_messages = ContactMessage.query.all()
+    return render_template("messages.html", messages=all_messages)
 
 # 創建資料庫表格
 if __name__ == '__main__':
