@@ -1,13 +1,17 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from markupsafe import escape
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
 # 資料庫配置
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///flask_demo.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# 會話管理配置
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # 生產環境要改成隨機字串
 
 # 初始化資料庫
 db = SQLAlchemy(app)
@@ -17,11 +21,20 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 關聯：一個用戶可以有多個訊息
     messages = db.relationship('ContactMessage', backref='user', lazy=True)
 
+    def set_password(self, password):
+        """設置密碼雜湊"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """檢查密碼是否正確"""
+        return check_password_hash(self.password_hash, password)
+    
     def __repr__(self):
         return f"<User {self.username}>"
 
