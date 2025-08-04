@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}登入 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>用戶登入</h1>
+
+{% if message %}
+<div class="alert">{{ message }}</div>
+{% endif %}
+
+<form method="POST" action="/login">
+  <div class="form_group">
+    <label for="username">用戶名：</label>
+    <input type="text" id="username" name="username" required>
+  </div>
+
+  <div class="form_group">
+    <label for="password">密碼：</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+
+  <button type="submit">登入</button>
+</form>
+
+<p><a href="/register">沒有帳號？點此註冊</a></p>
+{% endblock %}
