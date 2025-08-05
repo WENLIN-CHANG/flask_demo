@@ -22,3 +22,12 @@ class User(db.Model):
     
     def __repr__(self):
         return f"<User {self.username}>"
+    
+    def to_dict(self):
+        """將用戶資料轉換為字典"""
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
