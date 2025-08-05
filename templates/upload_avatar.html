@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}上傳頭像 - Flask Demo{% endblock %}
+
+{% block content %}
+<h1>上傳頭像</h1>
+
+{% if message %}
+<div class="alert">{{ message }}</div>
+{% endif %}
+
+<div class="avatar_upload_container">
+  <!-- 當前頭像預覽 -->
+  <div class="current_avatar">
+    <h3>當前頭像</h3>
+    <img id="current-avatar" src="{{ current_user.get_avatar_url() if current_user
+   else '/static/images/default_avatar.png' }}" alt="當前頭像" class="avatar_preview">
+  </div>
+
+  <!-- 上傳表單 -->
+  <div class="upload_form">
+    <h3>上傳新頭像</h3>
+    <form id="avatar-form" enctype="multipart/form-data">
+      <div class="form_group">
+        <label for="avatar">選擇圖片：</label>
+        <input type="file" id="avatar" name="avatar" accept="image/*" required>
+        <small>支援格式：PNG, JPG, JPEG, GIF, WebP</small>
+      </div>
+
+      <!-- 圖片預覽 -->
+      <div class="preview_container" style="display: none;">
+        <h4>預覽</h4>
+        <img id="preview-image" class="avatar_preview" alt="預覽">
+      </div>
+
+      <div class="button_group">
+        <button type="submit" id="upload-btn">上傳頭像</button>
+        <button type="button" id="delete-btn">刪除頭像</button>
+      </div>
+    </form>
+
+    <!-- 上傳進度 -->
+    <div id="upload-progress" style="display: none;">
+      <div class="progress_bar">
+        <div class="progress_fill"></div>
+      </div>
+      <p>上傳中...</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
