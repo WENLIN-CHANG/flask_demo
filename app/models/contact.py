@@ -13,3 +13,14 @@ class ContactMessage(db.Model):
 
     def __repr__(self):
         return f"<ContactMessage {self.name}>"
+    
+    def to_dict(self):
+        """將聯絡人資料轉換為字典"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "message": self.message,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "user_id": self.user_id
+        }

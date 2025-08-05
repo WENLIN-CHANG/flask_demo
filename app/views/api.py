@@ -150,3 +150,32 @@ def delete_user(user_id):
 def get_contacts():
     """獲取所有聯絡人"""
     contacts = ContactMessage.query.all()
+    contacts_data = [contact.to_dict() for contact in contacts]
+    return success_response(data=contacts_data, message=f"找到{len(contacts_data)}則訊息")
+
+@api_bp.route('/contacts', methods=['POST'])
+def create_contact():
+    """創建新聯絡訊息"""
+    data = request.get_json()
+
+    if not data:
+        return error_response("請提供JSON資料", status_code=400)
+    
+    name = data.get('name')
+    email = data.get('email')
+    message = data.get('message')
+
+    if not all([name, email, message]):
+        return error_response("請提供姓名、電子郵件和訊息", status_code=400)
+    
+    try:
+        new_contact = ContactMessage(name=name, email=email, message=message)
+        db.session.add(new_contact)
+        db.session.commit()
+        
+        return success_response(data=new_contact.to_dict(), message="聯絡訊息創建成功", status_code=201)
+    except Exception as e:
+        db.session.rollback()
+        return error_response("創建聯絡訊息失敗", status_code=500)
+    
+    
