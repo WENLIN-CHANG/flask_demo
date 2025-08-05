@@ -3,6 +3,10 @@ from app.database import db
 from app.models.user import User
 from app.models.contact import ContactMessage
 from datetime import datetime
+from werkzeug.datastructures import FileStorage
+from app.utils.file_helpers import allowed_file, generate_unique_filename, resize_image, ensure_upload_folder
+from flask import current_app
+import os
 
 # 創建API Blueprint
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -260,3 +264,105 @@ def get_user_profile(user_id):
         return error_response("用戶不存在", status_code=404)
     
     return success_response(data=user.to_dict(), message="用戶資料獲取成功")
+
+# === 文件上傳API ===
+@api_bp.route('/users/<int:user_id>/avatar', methods=['POST'])
+def upload_avatar(user_id):
+    """上傳用戶頭像"""
+    # 確保上傳目錄存在
+    ensure_upload_folder('avatar')
+
+    # 檢查用戶是否存在
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("用戶不存在", status_code=404)
+    
+    # 檢查是否有文件
+    if 'avatar' not in request.files:
+        return error_response("請選擇頭像文件", status_code=400)
+    
+    file = request.files['avatar']
+
+    # 檢查文件名是否為空
+    if file.filename == '':
+        return error_response("未選擇文件", status_code=400)
+    
+    # 檢查文件類型
+    if not allowed_file(file.filename):
+        return error_response("不支援的文件格式，請使用: png, jpg, jpeg, gif, webp", status_code=400)
+    
+    temp_path = None
+    try:
+        # 生成唯一文件名
+        unique_filename = generate_unique_filename(file.filename)
+
+        # 臨時保存原始文件
+        temp_path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"temp_{unique_filename}")
+        file.save(temp_path)
+
+        # 處理後的頭像路徑
+        avatar_path = os.path.join(current_app.config['AVATAR_FOLDER'], unique_filename)
+
+        # 縮放圖片
+        if resize_image(temp_path, avatar_path, current_app.config['AVATAR_SIZE']):
+            # 刪除臨時文件
+            os.remove(temp_path)
+
+            # 刪除舊頭像（如果存在）
+            if user.avatar_filename:
+                old_avatar_path = os.path.join(current_app.config['AVATAR_FOLDER'], user.avatar_filename)
+                if os.path.exists(old_avatar_path):
+                    os.remove(old_avatar_path)
+
+            # 更新用戶頭像文件名
+            user.avatar_filename = unique_filename
+            db.session.commit()
+
+            return success_response(
+                data={
+                    "user": user.to_dict(),
+                    "avatar_url": user.get_avatar_url()
+                },
+                message="頭像上傳成功",
+                status_code=201
+            )
+        else:
+            # 圖片處理失敗，刪除臨時文件
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return error_response("圖片處理失敗", status_code=500)
+        
+    except Exception as e:
+        # 清理臨時文件
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+        db.session.rollback()
+        return error_response(f"上傳失敗: {str(e)}", status_code=500)
+    
+@api_bp.route('/users/<int:user_id>/avatar', methods=['DELETE'])
+def delete_avatar(user_id):
+    """刪除用戶頭像"""
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("用戶不存在", status_code=404)
+    
+    if not user.avatar_filename:
+        return error_response("用戶沒有設置頭像", status_code=404)
+    
+    try:
+        # 刪除頭像文件
+        avatar_path = os.path.join(current_app.config['AVATAR_FOLDER'], user.avatar_filename)
+        if os.path.exists(avatar_path):
+            os.remove(avatar_path)
+
+        # 清除資料庫記錄
+        user.avatar_filename = None
+        db.session.commit()
+
+        return success_response(
+            data={"user": user.to_dict()},
+            message="頭像刪除成功"
+        )
+    except Exception as e:
+        db.session.rollback()
+        return error_response(f"刪除失敗: {str(e)}", status_code=500)

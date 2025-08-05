@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from config import config
 from app.database import db
 
@@ -24,5 +24,12 @@ def create_app(config_name='default'):
     # 創建資料庫表格
     with app.app_context():
         db.create_all()
+
+    app.config['MAX_CONTENT_LENGTH'] = config[config_name].MAX_CONTENT_LENGTH
+    
+    # 添加上傳文件的靜態文件服務
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
     
     return app
