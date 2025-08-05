@@ -8,6 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    avatar_filename = db.Column(db.String(120), nullable=True)
     
     # 關聯：一個用戶可以有多個訊息
     messages = db.relationship('ContactMessage', backref='user', lazy=True)
@@ -29,5 +30,13 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "avatar_url": self.get_avatar_url()
         }
+    
+    def get_avatar_url(self):
+        """獲取頭像URL"""
+        if self.avatar_filename:
+            return f"/uploads/avatars/{self.avatar_filename}"
+        return "/static/images/default_avatar.png" # 預設頭像
+    
