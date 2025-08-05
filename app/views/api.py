@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from app.database import db
 from app.models.user import User
 from app.models.contact import ContactMessage
+from datetime import datetime
 
 # 創建API Blueprint
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -177,5 +178,85 @@ def create_contact():
     except Exception as e:
         db.session.rollback()
         return error_response("創建聯絡訊息失敗", status_code=500)
+
+# === 認證API ===    
+@api_bp.route('/auth/register', methods=['POST'])
+def api_register():
+    """API用戶註冊"""
+    data = request.get_json()
+
+    if not data:
+        return error_response("請提供JSON資料", status_code=400)
     
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not all([username, email, password]):
+        return error_response("請提供用戶名、電子郵件和密碼", status_code=400)
     
+    # 檢查用戶名是否已存在
+    if User.query.filter_by(username=username).first():
+        return error_response("用戶名已存在", status_code=409)
+    
+    # 檢查電子郵件是否已存在
+    if User.query.filter_by(email=email).first():
+        return error_response("電子郵件已存在", status_code=409)
+    
+    # 創建新用戶
+    try:
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)
+        
+        db.session.add(new_user)
+        db.session.commit()
+
+        return success_response(
+            data={
+                "user": new_user.to_dict(),
+                "message": "註冊成功，請登入"
+            },
+            message="用戶註冊成功",
+            status_code=201
+        )
+    except Exception as e:
+        db.session.rollback()
+        return error_response("註冊失敗", status_code=500)
+    
+@api_bp.route('/auth/login', methods=['POST'])
+def api_login():
+    """API用戶登入"""
+    data = request.get_json()
+
+    if not data:
+        return error_response("請提供JSON資料", status_code=400)
+    
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return error_response("請提供用戶名和密碼", status_code=400)
+    
+    # 查找用戶
+    user = User.query.filter_by(username=username).first()
+
+    if not user or not user.check_password(password):
+        return error_response("用戶名或密碼錯誤", status_code=401)
+    
+    return success_response(
+        data={
+            "user": user.to_dict(),
+            "token": f"user_token_{user.id}",
+            "login_time": datetime.now().isoformat()
+        },
+        message="登入成功"
+    )
+
+@api_bp.route('/auth/user/<int:user_id>', methods=['GET'])
+def get_user_profile(user_id):
+    """取得用戶資料（需要認證）"""
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("用戶不存在", status_code=404)
+    
+    return success_response(data=user.to_dict(), message="用戶資料獲取成功")
