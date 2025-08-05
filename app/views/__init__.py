@@ -3,7 +3,9 @@ def register_blueprints(app):
     from app.views.main import main_bp
     from app.views.auth import auth_bp
     from app.views.contact import contact_bp
+    from app.views.api import api_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(contact_bp)
+    app.register_blueprint(api_bp)
